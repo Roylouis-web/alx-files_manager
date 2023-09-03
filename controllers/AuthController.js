@@ -6,29 +6,25 @@ import redisClient from '../utils/redis';
 
 class AuthController {
   static async getConnect(req, res) {
-    const authorization = req.headers.authorization.split(' ')[1];
-    const credentials = Buffer.from(authorization, 'base64').toString();
-    const [email, password] = credentials.split(':');
-    const hashedPwd = sha1(password);
-    const user = await dbClient.getUser({ email, password: hashedPwd });
+    const { authorization } = req.headers;
+    const base64 = authorization.split(' ')[1];
+    const data = Buffer.from(base64, 'base64').toString();
+    const [email, password] = data.split(':');
+    const collection = dbClient.db.collection('users');
+    const user = await collection.findOne({ email, password: sha1(password) });
+    const token = uuidv4();
 
-    if (user.length === 0) {
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const token = uuidv4();
-    await redisClient.set(`auth_${token}`, user[0]._id, 86400);
+    await redisClient.set(`auth_${token}`, user._id, 86400);
     return res.json({ token });
   }
 
   static async getDisconnect(req, res) {
     const token = req.headers['x-token'];
     const userId = await redisClient.get(`auth_${token}`);
-
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -39,15 +35,18 @@ class AuthController {
 
   static async getMe(req, res) {
     const token = req.headers['x-token'];
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
     const userId = await redisClient.get(`auth_${token}`);
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+    const collection = dbClient.db.collection('users');
+    const user = await collection.findOne({ _id: ObjectId(userId) });
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
-    
+    return res.json({ id: user._id, email: user.email });
+  }
 }
 
 export default AuthController;
