@@ -13,7 +13,7 @@ class UsersController {
     }
 
     const collection = dbClient.db.collection('users');
-    const foundUser = await collection.findOne({ email })
+    const foundUser = await collection.findOne({ email });
     if (foundUser) {
       return res.status(400).json({ error: 'Already exist' });
     }
