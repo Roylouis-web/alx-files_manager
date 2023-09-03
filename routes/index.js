@@ -4,14 +4,14 @@ import UsersController from '../controllers/UsersController';
 import AuthController from '../controllers/AuthController';
 import FilesController from '../controllers/FilesController';
 
-const indexRouter = Router();
+const router = Router();
 
-indexRouter.get('/status', AppController.getStatus);
-indexRouter.get('/stats', AppController.getStats);
-indexRouter.post('/users', UsersController.postNew);
-indexRouter.get('/connect', AuthController.getConnect);
-indexRouter.get('/disconnect', AuthController.getDisconnect);
-indexRouter.get('/users/me', AuthController.getMe);
-indexRouter.post('/files', FilesController.postUpload)
+router.get('/status', AppController.getStatus);
+router.get('/stats', AppController.getStats);
+router.post('/users', UsersController.postNew);
+router.get('/connect', AuthController.getConnect);
+router.get('/disconnect', AuthController.getDisconnect);
+router.get('/users/me', AuthController.getMe);
+router.post('/files', FilesController.postUpload)
 
-export default indexRouter;
+export default router;
