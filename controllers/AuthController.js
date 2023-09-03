@@ -9,7 +9,7 @@ class AuthController {
     const authData = req.header('Authorization');
     const base64 = authData.split(' ')[1];
     const data = Buffer.from(base64, 'base64').toString();
-    if (data.length !== 2) {
+    if (data.split(':').length !== 2) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const [email, password] = data.split(':');
@@ -26,7 +26,7 @@ class AuthController {
   }
 
   static async getDisconnect(req, res) {
-    const token = req.header('X-Token')
+    const token = req.header('X-Token');
     const userId = await redisClient.get(`auth_${token}`);
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
