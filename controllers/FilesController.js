@@ -28,7 +28,7 @@ class FilesController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const user = await usersCollection.findOne({ _id: ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
 
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -47,7 +47,7 @@ class FilesController {
     }
 
     if (parentId) {
-      const file = filesCollection.findOne({ parentId: ObjectId(parentId) });
+      const file = filesCollection.findOne({ parentId: new ObjectId(parentId) });
       if (!file) {
         return res.status(400).json({ error: 'Parent not found' });
       }
@@ -59,8 +59,8 @@ class FilesController {
 
     if (type === 'folder') {
       const items = {
-        userId: ObjectId(userId),
-        parentId: parentId ? Object(parentId) : 0,
+        userId: new ObjectId(userId),
+        parentId: parentId ? new ObjectId(parentId) : 0,
         name,
         type,
         isPublic: isPublic || false,
@@ -86,8 +86,8 @@ class FilesController {
     await writeFile(localPath, content, { encoding: 'base64' });
 
     const items = {
-      userId: ObjectId(userId),
-      parentId: parentId ? Object(parentId) : 0,
+      userId: new ObjectId(userId),
+      parentId: parentId ? new ObjectId(parentId) : 0,
       name,
       type,
       isPublic: isPublic || false,

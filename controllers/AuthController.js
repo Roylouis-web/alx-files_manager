@@ -43,7 +43,7 @@ class AuthController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     const collection = dbClient.db.collection('users');
-    const user = await collection.findOne({ _id: ObjectId(userId) });
+    const user = await collection.findOne({ _id: new ObjectId(userId) });
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
