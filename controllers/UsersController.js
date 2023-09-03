@@ -16,7 +16,7 @@ class UsersController {
     const foundUser = await collection.findOne({ email });
     console.log(foundUser);
     if (foundUser) {
-      return res.json({ error: 'Already exist' });
+      return res.status(400).json({ error: 'Already exist' });
     }
 
     const user = await collection.insertOne({ email, password: sha1(password) });
