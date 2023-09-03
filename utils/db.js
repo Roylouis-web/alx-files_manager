@@ -53,10 +53,10 @@ class DBClient {
     const files = await collection.find({}).toArray();
     return files;
   }
-  
+
   async getFile(credentials) {
     const collection = this.getCollection('files');
-    const file = await collection.find({ userId }).toArray();
+    const file = await collection.find(credentials).toArray();
     return file;
   }
 
