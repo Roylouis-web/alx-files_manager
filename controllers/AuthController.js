@@ -47,13 +47,7 @@ class AuthController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const user = await dbClient.getUser({ _id: ObjectId(userId) });
-    if (user.length === 0) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    return res.json({ id: user[0]._id, email: user[0].email });
-  }
+    
 }
 
 export default AuthController;
