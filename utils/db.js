@@ -29,47 +29,6 @@ class DBClient {
     const result = await collection.countDocuments();
     return result;
   }
-
-  async getUsers() {
-    const collection = this.getCollection('users');
-    const users = await collection.find({}).toArray();
-    return users;
-  }
-
-  async getUser(credentials) {
-    const collection = this.getCollection('users');
-    const user = await collection.find(credentials).toArray();
-    return user;
-  }
-
-  async createUser(email, password) {
-    const collection = this.getCollection('users');
-    const result = await collection.insertOne({ email, password });
-    return result;
-  }
-
-  async getFiles() {
-    const collection = this.getCollection('files');
-    const files = await collection.find({}).toArray();
-    return files;
-  }
-
-  async getFile(credentials) {
-    const collection = this.getCollection('files');
-    const file = await collection.find(credentials).toArray();
-    return file;
-  }
-
-  async createFile(credentials) {
-    const collection = this.getCollection('files');
-    const result = await collection.insertOne(credentials);
-    return result;
-  }
-
-  getCollection(collectionName) {
-    const collection = this.db.collection(collectionName);
-    return collection;
-  }
 }
 
 const dbClient = new DBClient();
