@@ -144,7 +144,7 @@ class FilesController {
       name,
       type,
       isPublic,
-      userId: user._id,
+      userId: file.userId,
       parentId,
     });
   }
