@@ -126,7 +126,7 @@ class FilesController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const file = await filesCollection.findOne({ _id: ObjectId(id), userId: ObjectId(userId) });
+    const file = await filesCollection.findOne({ _id: ObjectId(id), userId: user._id});
 
     if (!file) {
       return res.status(404).json({ error: 'Not found' });
@@ -144,17 +144,17 @@ class FilesController {
       name,
       type,
       isPublic,
-      userId,
+      userId: user._id,
       parentId,
     });
   }
 
   static async getIndex(req, res) {
-    const token = req.header('X-Token');
+    const token = req.headers['x-token'];
     const usersCollection = dbClient.db.collection('users');
     const filesCollection = dbClient.db.collection('files');
     const { parentId, page } = req.query;
-    const defaultParentId = parentId ? new ObjectId(parentId) : 0;
+    const defaultParentId = parentId ? ObjectId(parentId) : 0;
     const limit = 20;
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
