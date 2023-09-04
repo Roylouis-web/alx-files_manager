@@ -47,7 +47,7 @@ class FilesController {
     }
 
     if (parentId) {
-      const file = filesCollection.findOne({ parentId: new ObjectId(parentId) });
+      const file = filesCollection.findOne({ _id: new ObjectId(parentId) });
       if (!file) {
         return res.status(400).json({ error: 'Parent not found' });
       }
@@ -60,9 +60,10 @@ class FilesController {
     if (type === 'folder') {
       const items = {
         userId: new ObjectId(userId),
-        parentId: parentId ? ObjectId(parentId) : 0,
+        parentId: parentId || 0,
         name,
         type,
+        isPublic: isPublic || false,
       };
       const file = await filesCollection.insertOne(items);
       const response = {
