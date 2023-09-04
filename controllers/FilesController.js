@@ -60,7 +60,7 @@ class FilesController {
     if (type === 'folder') {
       const items = {
         userId: new ObjectId(userId),
-        parentId: parentId ? new ObjectId(parentId) : 0,
+        parentId: parentId || 0,
         name,
         type,
         isPublic: isPublic || false,
@@ -87,7 +87,7 @@ class FilesController {
 
     const items = {
       userId: new ObjectId(userId),
-      parentId: parentId ? new ObjectId(parentId) : 0,
+      parentId: parentId || 0,
       name,
       type,
       isPublic: isPublic || false,
