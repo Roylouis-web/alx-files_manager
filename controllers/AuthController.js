@@ -14,14 +14,10 @@ class AuthController {
     }
     const [email, password] = data.split(':');
     const collection = dbClient.db.collection('users');
-    const user = await collection.findOne({ email });
+    const user = await collection.findOne({ email, password: sha1(password) });
     const token = uuidv4();
 
     if (!user) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    if (user.password !== sha1(password)) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
