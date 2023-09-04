@@ -1,5 +1,4 @@
 import { promises, existsSync } from 'fs';
-import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
@@ -18,7 +17,6 @@ class FilesController {
     } = req.body;
     const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
     const UUID = uuidv4();
-    const localPath = path.join(__dirname, FOLDER_PATH, UUID);
     const allowedTypes = ['folder', 'file', 'image'];
     const usersCollection = dbClient.db.collection('users');
     const filesCollection = dbClient.db.collection('files');
@@ -47,7 +45,7 @@ class FilesController {
     }
 
     if (parentId) {
-      const file = filesCollection.findOne({ _id: new ObjectId(parentId) });
+      const file = filesCollection.findOne({ _id: new ObjectId(parentId), userId: user._id });
       if (!file) {
         return res.status(400).json({ error: 'Parent not found' });
       }
@@ -59,7 +57,7 @@ class FilesController {
 
     if (type === 'folder') {
       const items = {
-        userId: new ObjectId(userId),
+        userId: user._id,
         parentId: parentId || 0,
         name,
         type,
@@ -68,7 +66,7 @@ class FilesController {
       const file = await filesCollection.insertOne(items);
       const response = {
         id: file.insertedId,
-        userId,
+        userId: user._id,
         parentId: parentId || 0,
         name,
         type,
@@ -77,13 +75,13 @@ class FilesController {
       return res.status(201).json(response);
     }
 
-    if (!existsSync(path.join(__dirname, FOLDER_PATH))) {
-      await mkdir(path.join(__dirname, FOLDER_PATH), { recursive: true });
+    if (!existsSync(FOLDER_PATH)) {
+      await mkdir(`${FOLDER_PATH}`);
     }
 
     const content = Buffer.from(data, 'base64');
 
-    await writeFile(localPath, content, { encoding: 'base64' });
+    await writeFile(`${FOLDER_PATH}/${UUID}`, content, { encoding: 'utf-8' });
 
     const items = {
       userId: new ObjectId(userId),
@@ -91,7 +89,7 @@ class FilesController {
       name,
       type,
       isPublic: isPublic || false,
-      localPath,
+      localPath: `${FOLDER_PATH}/${UUID}`,
     };
 
     const file = await filesCollection.insertOne(items);
