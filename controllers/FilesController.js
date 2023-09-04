@@ -7,6 +7,7 @@ import redisClient from '../utils/redis';
 class FilesController {
   static async postUpload(req, res) {
     const token = req.headers['x-token'];
+    let foundParent;
     const userId = await redisClient.get(`auth_${token}`);
     const {
       name,
@@ -45,7 +46,8 @@ class FilesController {
     }
 
     if (parentId) {
-      const file = filesCollection.findOne({ _id: ObjectId(parentId), userId: user._id });
+      const file = await filesCollection.findOne({ _id: ObjectId(parentId), userId: user._id });
+      foundParent = file;
       if (!file) {
         return res.status(400).json({ error: 'Parent not found' });
       }
@@ -58,7 +60,7 @@ class FilesController {
     if (type === 'folder') {
       const items = {
         userId: user._id,
-        parentId: parentId || 0,
+        parentId: parentId ? foundParent._id : 0,
         name,
         type,
         isPublic: isPublic || false,
@@ -67,7 +69,7 @@ class FilesController {
       const response = {
         id: file.insertedId,
         userId: user._id,
-        parentId: parentId || 0,
+        parentId: parentId ? foundParent._id : 0,
         name,
         type,
         isPublic: isPublic || false,
@@ -85,7 +87,7 @@ class FilesController {
 
     const items = {
       userId: user._id,
-      parentId: parentId || 0,
+      parentId: parentId ? foundParent._id : 0,
       name,
       type,
       isPublic: isPublic || false,
@@ -102,6 +104,123 @@ class FilesController {
       isPublic: isPublic || false,
     };
     return res.status(201).json(response);
+  }
+
+  static async getShow(req, res) {
+    const token = req.headers['x-token'];
+    const usersCollection = dbClient.db.collection('users');
+    const filesCollection = dbClient.db.collection('files');
+    const { id } = req.params;
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = await redisClient.get(`auth_${token}`);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await usersCollection.findOne({ _id: ObjectId(userId) });
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const file = await filesCollection.findOne({ _id: ObjectId(id), userId: ObjectId(userId) });
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    const {
+      name,
+      type,
+      isPublic,
+      parentId,
+    } = file;
+
+    return res.json({
+      id: file._id,
+      name,
+      type,
+      isPublic,
+      userId,
+      parentId,
+    });
+  }
+
+  static async getIndex(req, res) {
+    const token = req.header('X-Token');
+    const usersCollection = dbClient.db.collection('users');
+    const filesCollection = dbClient.db.collection('files');
+    const { parentId, page } = req.query;
+    const defaultParentId = parentId ? new ObjectId(parentId) : 0;
+    const limit = 20;
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const userId = await redisClient.get(`auth_${token}`);
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await usersCollection.findOne({ _id: ObjectId(userId) });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const query = [
+      {
+        $match: {
+          parentId: defaultParentId,
+          userId: user._id,
+        },
+      },
+    ];
+
+    if (page) {
+      query.push(
+        {
+          $skip: parseInt(page, 10) * limit,
+        },
+        {
+          $limit: limit,
+        },
+        {
+          $addFields: {
+            id: '$_id',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            localPath: 0,
+          },
+        },
+      );
+    } else {
+      query.push(
+        {
+          $limit: limit,
+        },
+        {
+          $addFields: {
+            id: '$_id',
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            localPath: 0,
+          },
+        },
+      );
+    }
+    const file = await filesCollection.aggregate(query).toArray();
+    return res.json(file);
   }
 }
 
