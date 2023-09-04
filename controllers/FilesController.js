@@ -132,21 +132,27 @@ class FilesController {
       return res.status(404).json({ error: 'Not found' });
     }
 
-    const {
-      name,
-      type,
-      isPublic,
-      parentId,
-    } = file;
+    const response = await filesCollection.aggregate([
+      {
+        $match: {
+          _id: ObjectId(id),
+          userId: user._id,
+        },
+      },
+      {
+        $addFields: {
+          id: '$_id',
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          localPath: 0,
+        },
+      },
+    ]).toArray();
 
-    return res.json({
-      id: file._id,
-      name,
-      type,
-      isPublic,
-      userId: file.userId,
-      parentId,
-    });
+    return res.json(response[0]);
   }
 
   static async getIndex(req, res) {
@@ -154,7 +160,7 @@ class FilesController {
     const usersCollection = dbClient.db.collection('users');
     const filesCollection = dbClient.db.collection('files');
     const { parentId, page } = req.query;
-    const parsedPage = parseInt(page, 10);
+    const parsedPage = page ? parseInt(page, 10) : 0;
     const defaultParentId = parentId ? ObjectId(parentId) : 0;
     const limit = 20;
     if (!token) {
