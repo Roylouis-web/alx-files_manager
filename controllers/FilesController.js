@@ -85,7 +85,7 @@ class FilesController {
 
     const items = {
       userId: user._id,
-      parentId: parentId ? ObjectId(parentId) : 0,
+      parentId: parentId || 0,
       name,
       type,
       isPublic: isPublic || false,
