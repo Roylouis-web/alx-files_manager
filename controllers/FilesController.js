@@ -126,7 +126,7 @@ class FilesController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const file = await filesCollection.findOne({ _id: ObjectId(id), userId: user._id});
+    const file = await filesCollection.findOne({ _id: ObjectId(id), userId: user._id });
 
     if (!file) {
       return res.status(404).json({ error: 'Not found' });
