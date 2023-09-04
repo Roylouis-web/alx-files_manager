@@ -191,7 +191,7 @@ class FilesController {
     if (parsedPage) {
       query.push(
         {
-          $skip: parsedPage * limit,
+          $skip: (parsedPage * limit) + 1,
         },
         {
           $limit: limit,
