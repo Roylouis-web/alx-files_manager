@@ -60,10 +60,9 @@ class FilesController {
     if (type === 'folder') {
       const items = {
         userId: new ObjectId(userId),
-        parentId: parentId || 0,
+        parentId: parentId ? ObjectId(parentId) : 0,
         name,
         type,
-        isPublic: isPublic || false,
       };
       const file = await filesCollection.insertOne(items);
       const response = {
@@ -87,7 +86,7 @@ class FilesController {
 
     const items = {
       userId: new ObjectId(userId),
-      parentId: parentId || 0,
+      parentId: parentId ? ObjectId(parentId) : 0,
       name,
       type,
       isPublic: isPublic || false,
