@@ -26,7 +26,7 @@ class FilesController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+    const user = await usersCollection.findOne({ _id: ObjectId(userId) });
 
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -45,7 +45,7 @@ class FilesController {
     }
 
     if (parentId) {
-      const file = filesCollection.findOne({ _id: new ObjectId(parentId), userId: user._id });
+      const file = filesCollection.findOne({ _id: ObjectId(parentId), userId: user._id });
       if (!file) {
         return res.status(400).json({ error: 'Parent not found' });
       }
@@ -84,7 +84,7 @@ class FilesController {
     await writeFile(`${FOLDER_PATH}/${UUID}`, content, { encoding: 'utf-8' });
 
     const items = {
-      userId: new ObjectId(userId),
+      userId: user._id,
       parentId: parentId ? ObjectId(parentId) : 0,
       name,
       type,
@@ -95,7 +95,7 @@ class FilesController {
     const file = await filesCollection.insertOne(items);
     const response = {
       id: file.insertedId,
-      userId,
+      userId: user._id,
       parentId: parentId || 0,
       name,
       type,
