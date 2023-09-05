@@ -1,5 +1,5 @@
 import * as imageThumbnail from 'image-thumbnail';
-import * as Queue from 'bull';
+import Queue from 'bull';
 import { promises } from 'fs';
 import { ObjectId } from 'mongodb';
 import dbClient from './utils/db';

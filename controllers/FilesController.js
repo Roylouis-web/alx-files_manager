@@ -1,7 +1,7 @@
 import { promises, existsSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
-import * as Queue from 'bull';
+import Queue from 'bull';
 import mime from 'mime-types';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -402,9 +402,17 @@ class FilesController {
     const contentType = mime.contentType(foundFile.name);
 
     if (size) {
-      content = await readFile(`${foundFile.localPath}_${size}`, 'utf-8');
+      try {
+        content = await readFile(`${foundFile.localPath}_${size}`, 'utf-8');
+      } catch (error) {
+        return res.status(404).json({ error: 'Not found' });
+      }
     } else {
-      content = await readFile(foundFile.localPath, 'utf-8');
+      try {
+        content = await readFile(foundFile.localPath, 'utf-8');
+      } catch (error) {
+        return res.status(404).json({ error: 'Not found' });
+      }
     }
     res.setHeader('Content-Type', contentType);
     return res.end(content);
