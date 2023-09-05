@@ -1,12 +1,14 @@
 import { promises, existsSync } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
+import * as Queue from 'bull';
 import mime from 'mime-types';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
 class FilesController {
   static async postUpload(req, res) {
+    const queue = new Queue('fileQueue');
     const token = req.headers['x-token'];
     let foundParent;
     const userId = await redisClient.get(`auth_${token}`);
@@ -104,6 +106,10 @@ class FilesController {
       type,
       isPublic: isPublic || false,
     };
+
+    if (type === 'image') {
+      queue.add('image', { userId: user._id, fileId: file.insertedId });
+    }
     return res.status(201).json(response);
   }
 
@@ -360,10 +366,12 @@ class FilesController {
   static async getFile(req, res) {
     const token = req.headers['x-token'];
     const { id } = req.params;
+    const { size } = req.query;
     const usersCollection = dbClient.db.collection('users');
     const filesCollection = dbClient.db.collection('files');
     const { readFile } = promises;
     const foundFile = await filesCollection.findOne({ _id: ObjectId(id) });
+    let content;
 
     if (!foundFile) {
       return res.status(404).json({ error: 'Not found' });
@@ -392,7 +400,12 @@ class FilesController {
     }
 
     const contentType = mime.contentType(foundFile.name);
-    const content = await readFile(foundFile.localPath, 'utf-8');
+
+    if (size) {
+      content = await readFile(`${foundFile.localPath}_${size}`, 'utf-8');
+    } else {
+      content = await readFile(foundFile.localPath, 'utf-8');
+    }
     res.setHeader('Content-Type', contentType);
     return res.end(content);
   }
