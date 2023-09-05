@@ -168,8 +168,9 @@ class FilesController {
     const filesCollection = dbClient.db.collection('files');
     const { parentId, page } = req.query;
     const parsedPage = page ? parseInt(page, 10) : 0;
-    const defaultParentId = parentId ? ObjectId(parentId) : 0;
     const limit = 20;
+    let match;
+
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -186,12 +187,19 @@ class FilesController {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    if (parentId) {
+      match = {
+        parentId: ObjectId(parentId),
+        userId: user._id,
+      };
+    } else {
+      match = {
+        userId: user._id,
+      };
+    }
     const query = [
       {
-        $match: {
-          parentId: defaultParentId,
-          userId: user._id,
-        },
+        $match: match,
       },
     ];
 
