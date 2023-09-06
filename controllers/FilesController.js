@@ -397,7 +397,6 @@ class FilesController {
       }
 
       const user = await usersCollection.findOne({ _id: ObjectId(userId) });
-
       if (!user || JSON.stringify(foundFile.userId) !== JSON.stringify(user._id)) {
         return res.status(404).json({ error: 'Not found' });
       }
